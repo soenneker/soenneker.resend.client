@@ -17,7 +17,7 @@ public sealed class ResendHttpClient : IResendHttpClient
     private readonly IHttpClientCache _httpClientCache;
     private readonly IConfiguration _config;
 
-    private const string _prodUri = "https://api.resend.com";
+    private static readonly Uri _prodUri = new("https://api.resend.com", UriKind.Absolute);
 
     public ResendHttpClient(IHttpClientCache httpClientCache, IConfiguration config)
     {
@@ -27,20 +27,20 @@ public sealed class ResendHttpClient : IResendHttpClient
 
     public ValueTask<HttpClient> Get(CancellationToken cancellationToken = default)
     {
-        return _httpClientCache.Get(nameof(ResendHttpClient), () =>
+        // No closure: state passed explicitly + static lambda
+        return _httpClientCache.Get(nameof(ResendHttpClient), (config: _config, prodUri: _prodUri), static state =>
         {
-            var apiKey = _config.GetValueStrict<string>("Resend:ApiKey");
+            var apiKey = state.config.GetValueStrict<string>("Resend:ApiKey");
 
-            var options = new HttpClientOptions
+            return new HttpClientOptions
             {
-                BaseAddress = _prodUri,
+                BaseAddress = state.prodUri,
                 DefaultRequestHeaders = new Dictionary<string, string>
                 {
                     {"Authorization", $"Bearer {apiKey}"}
                 }
             };
-            return options;
-        }, cancellationToken: cancellationToken);
+        }, cancellationToken);
     }
 
     public void Dispose()
