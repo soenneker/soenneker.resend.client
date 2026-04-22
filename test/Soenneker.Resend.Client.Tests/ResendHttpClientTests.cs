@@ -1,20 +1,19 @@
-﻿using Soenneker.Resend.Client.Abstract;
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Resend.Client.Abstract;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Resend.Client.Tests;
 
-[Collection("Collection")]
-public sealed class ResendHttpClientTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public sealed class ResendHttpClientTests : HostedUnitTest
 {
     private readonly IResendHttpClient _httpclient;
 
-    public ResendHttpClientTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public ResendHttpClientTests(Host host) : base(host)
     {
         _httpclient = Resolve<IResendHttpClient>(true);
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
