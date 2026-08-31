@@ -6,7 +6,7 @@ using Soenneker.Utils.HttpClientCache.Registrar;
 namespace Soenneker.Resend.Client.Registrars;
 
 /// <summary>
-/// A .NET thread-safe singleton HttpClient for GitHub
+/// Registers the authenticated Resend HTTP client provider.
 /// </summary>
 public static class ResendHttpClientRegistrar
 {

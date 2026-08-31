@@ -11,13 +11,13 @@ using Soenneker.Utils.HttpClientCache.Abstract;
 
 namespace Soenneker.Resend.Client;
 
-///<inheritdoc cref="IResendHttpClient"/>
 public sealed class ResendHttpClient : IResendHttpClient
 {
     private readonly IHttpClientCache _httpClientCache;
     private readonly IConfiguration _config;
+    private readonly string _cacheKey = $"{nameof(ResendHttpClient)}:{Guid.NewGuid():N}";
 
-    private static readonly Uri _prodUri = new("https://api.resend.com", UriKind.Absolute);
+    private const string _prodBaseUrl = "https://api.resend.com/";
 
     public ResendHttpClient(IHttpClientCache httpClientCache, IConfiguration config)
     {
@@ -27,36 +27,29 @@ public sealed class ResendHttpClient : IResendHttpClient
 
     public ValueTask<HttpClient> Get(CancellationToken cancellationToken = default)
     {
-        // No closure: state passed explicitly + static lambda
-        return _httpClientCache.Get(nameof(ResendHttpClient), (config: _config, prodUri: _prodUri), static state =>
+        return _httpClientCache.Get(_cacheKey, (config: _config, baseUrl: _config["Resend:ClientBaseUrl"] ?? _prodBaseUrl), static state =>
         {
             var apiKey = state.config.GetValueStrict<string>("Resend:ApiKey");
 
             return new HttpClientOptions
             {
-                BaseAddress = state.prodUri,
+                BaseAddress = new Uri(state.baseUrl),
                 DefaultRequestHeaders = new Dictionary<string, string>
                 {
-                    {"Authorization", $"Bearer {apiKey}"}
+                    {"Authorization", $"Bearer {apiKey}"},
+                    {"User-Agent", state.config["Resend:UserAgent"] ?? "Soenneker.Resend.Client"}
                 }
             };
         }, cancellationToken);
     }
 
-    /// <summary>
-    /// Releases resources used by the current instance.
-    /// </summary>
     public void Dispose()
     {
-        _httpClientCache.RemoveSync(nameof(ResendHttpClient));
+        _httpClientCache.RemoveSync(_cacheKey);
     }
 
-    /// <summary>
-    /// Asynchronously releases resources used by the current instance.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     public ValueTask DisposeAsync()
     {
-        return _httpClientCache.Remove(nameof(ResendHttpClient));
+        return _httpClientCache.Remove(_cacheKey);
     }
 }
