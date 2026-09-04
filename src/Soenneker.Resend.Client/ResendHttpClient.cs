@@ -11,6 +11,7 @@ using Soenneker.Utils.HttpClientCache.Abstract;
 
 namespace Soenneker.Resend.Client;
 
+/// <inheritdoc cref="IResendHttpClient" />
 public sealed class ResendHttpClient : IResendHttpClient
 {
     private readonly IHttpClientCache _httpClientCache;
