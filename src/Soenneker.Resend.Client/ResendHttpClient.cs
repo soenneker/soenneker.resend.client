@@ -30,7 +30,7 @@ public sealed class ResendHttpClient : IResendHttpClient
     {
         return _httpClientCache.Get(_cacheKey, (config: _config, baseUrl: _config["Resend:ClientBaseUrl"] ?? _prodBaseUrl), static state =>
         {
-            var apiKey = state.config.GetValueStrict<string>("Resend:ApiKey");
+            var apiKey = state.config.GetStringStrict("Resend:ApiKey");
 
             return new HttpClientOptions
             {
